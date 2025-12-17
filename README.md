@@ -304,7 +304,7 @@ docker-compose up -d
 
 ## 👨‍💻 Автор
 
-**TB Group Development Team**
+**Ermek Ahmed. Full-Stack Developer**
 
 - GitHub: [@erahmedkz](https://github.com/erahmedkz)
 
