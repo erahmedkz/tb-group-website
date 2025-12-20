@@ -305,6 +305,7 @@ docker-compose up -d
 ## 👨‍💻 Автор
 
 **Ermek Ahmed. Full-Stack Developer**
+**Toishybayev Zhaslan. Full-Stack Developer**
 
 - GitHub: [@erahmedkz](https://github.com/erahmedkz)
 
