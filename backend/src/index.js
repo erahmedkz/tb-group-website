@@ -79,25 +79,32 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: err.message || 'Something went wrong!' })
 })
 
-// Connect to PostgreSQL and start server
-const startServer = async () => {
+// Connect to PostgreSQL
+const connectDB = async () => {
     try {
         await sequelize.authenticate()
         console.log('✅ PostgreSQL connected')
-
-        // Sync models
         await sequelize.sync({ alter: true })
         console.log('✅ Database synced')
+    } catch (error) {
+        console.error('❌ Database connection error:', error.message)
+    }
+}
 
+// Start server if not in production (Vercel) or if executed directly
+if (process.env.NODE_ENV !== 'production') {
+    const startServer = async () => {
+        await connectDB()
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`)
             console.log(`📁 Uploads: http://localhost:${PORT}/uploads`)
             console.log(`📋 API Health: http://localhost:${PORT}/api/health`)
         })
-    } catch (error) {
-        console.error('❌ Database connection error:', error.message)
-        process.exit(1)
     }
+    startServer()
+} else {
+    // For Vercel, we need to ensure DB is connected on requests
+    connectDB()
 }
 
-startServer()
+export default app
