@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { Send, CheckCircle, Loader2, ChevronDown } from 'lucide-react'
-import axios from 'axios'
+import api from '../../utils/api'
 
 const serviceOptions = [
     { value: '', label: 'Выберите услугу' },
@@ -30,7 +30,7 @@ export default function ContactForm({ service = '', showServiceSelect = true }) 
         setError('')
 
         try {
-            await axios.post('/api/contact', {
+            await api.post('contact', {
                 ...data,
                 service: selectedService
             })

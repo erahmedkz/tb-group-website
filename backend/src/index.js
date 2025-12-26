@@ -31,7 +31,7 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }))
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:5173'],
+    origin: true, // Разрешаем все домены для простоты на этапе запуска
     credentials: true
 }))
 app.use(express.json({ limit: '50mb' }))
