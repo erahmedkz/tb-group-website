@@ -1,4 +1,7 @@
 import pg from 'pg'
+// Force bundler to include pg
+const _pg = pg;
+
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
