@@ -30,7 +30,7 @@ export default function ContactForm({ service = '', showServiceSelect = true }) 
         setError('')
 
         try {
-            await api.post('contact', {
+            await api.post('/api/contact', {
                 ...data,
                 service: selectedService
             })
