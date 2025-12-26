@@ -1,5 +1,9 @@
 import { Sequelize } from 'sequelize'
 import dotenv from 'dotenv'
+import dns from 'dns'
+
+// Принудительно используем IPv4 для разрешения имен хостов
+dns.setDefaultResultOrder('ipv4first')
 
 dotenv.config()
 
@@ -11,12 +15,13 @@ const sequelize = process.env.DATABASE_URL
             ssl: {
                 require: true,
                 rejectUnauthorized: false
-            }
+            },
+            prepare: false // Важно для Supabase / PgBouncer
         },
         pool: {
             max: 5,
             min: 0,
-            acquire: 30000,
+            acquire: 60000,
             idle: 10000
         }
     })

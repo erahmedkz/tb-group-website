@@ -1,36 +1,9 @@
 import multer from 'multer'
 import path from 'path'
-import fs from 'fs'
+import { supabase } from '../config/supabase.js'
 
-// Create upload directories if not exist
-const uploadDirs = ['uploads', 'uploads/images', 'uploads/videos']
-uploadDirs.forEach(dir => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
-    }
-})
-
-// Image storage
-const imageStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/images')
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, uniqueSuffix + path.extname(file.originalname))
-    }
-})
-
-// Video storage
-const videoStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/videos')
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, uniqueSuffix + path.extname(file.originalname))
-    }
-})
+// Use memory storage as we'll upload to Supabase
+const storage = multer.memoryStorage()
 
 // File filters
 const imageFilter = (req, file, cb) => {
@@ -54,22 +27,54 @@ const videoFilter = (req, file, cb) => {
     cb(new Error('Only video files are allowed!'))
 }
 
-// Multer instances
 export const uploadImage = multer({
-    storage: imageStorage,
+    storage: storage,
     fileFilter: imageFilter,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+    limits: { fileSize: 10 * 1024 * 1024 }
 })
 
 export const uploadVideo = multer({
-    storage: videoStorage,
+    storage: storage,
     fileFilter: videoFilter,
-    limits: { fileSize: 100 * 1024 * 1024 } // 100MB
+    limits: { fileSize: 100 * 1024 * 1024 }
 })
 
+// Helper to upload to Supabase
+export const uploadToSupabase = async (file, folder = 'images') => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    const filename = `${folder}/${uniqueSuffix}${path.extname(file.originalname)}`
+
+    const { data, error } = await supabase.storage
+        .from('uploads')
+        .upload(filename, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+        })
+
+    if (error) {
+        throw error
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(filename)
+
+    return {
+        url: publicUrl,
+        filename: filename
+    }
+}
+
 // Delete file helper
-export const deleteFile = (filePath) => {
-    if (filePath && fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
+export const deleteFile = async (filename) => {
+    if (!filename) return
+    
+    const { error } = await supabase.storage
+        .from('uploads')
+        .remove([filename])
+    
+    if (error) {
+        console.error('Supabase delete error:', error.message)
     }
 }

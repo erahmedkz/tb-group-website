@@ -61,11 +61,21 @@ app.use('/api/content', contentRoutes)
 app.use('/api/admin', adminRoutes)
 
 // Health check
-app.get('/api/health', (req, res) => res.json({
-    status: 'ok',
-    timestamp: new Date(),
-    version: '1.0.0'
-}))
+app.get('/api/health', async (req, res) => {
+    let dbStatus = 'ok'
+    try {
+        await sequelize.authenticate()
+    } catch (e) {
+        dbStatus = 'error: ' + e.message
+    }
+
+    res.json({
+        status: 'ok',
+        database: dbStatus,
+        timestamp: new Date(),
+        version: '1.0.0'
+    })
+})
 
 // Error handler
 app.use((err, req, res, next) => {
