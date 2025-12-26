@@ -10,18 +10,18 @@ dotenv.config()
 const sequelize = process.env.DATABASE_URL 
     ? new Sequelize(process.env.DATABASE_URL, {
         dialect: 'postgres',
-        logging: false,
+        logging: console.log, // Включаем логи SQL для отладки в Vercel
         dialectOptions: {
             ssl: {
                 require: true,
                 rejectUnauthorized: false
             },
-            prepare: false // Важно для Supabase / PgBouncer
+            prepare: false
         },
         pool: {
-            max: 5,
+            max: 1, // В Serverless лучше использовать маленькое число
             min: 0,
-            acquire: 60000,
+            acquire: 30000,
             idle: 10000
         }
     })

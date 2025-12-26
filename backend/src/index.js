@@ -100,29 +100,43 @@ app.use((err, req, res, next) => {
 // Connect to PostgreSQL
 const connectDB = async () => {
     try {
+        console.log('🔄 Connecting to database...');
         await sequelize.authenticate()
         console.log('✅ PostgreSQL connected')
-        await sequelize.sync({ alter: true })
-        console.log('✅ Database synced')
+        
+        // В Vercel лучше не делать alter: true при каждом запросе
+        if (process.env.NODE_ENV !== 'production') {
+            await sequelize.sync({ alter: true })
+            console.log('✅ Database synced')
+        }
     } catch (error) {
         console.error('❌ Database connection error:', error.message)
+        // Не завершаем процесс, чтобы API могло ответить ошибкой, а не просто упасть
     }
 }
 
-// Start server if not in production (Vercel) or if executed directly
-if (process.env.NODE_ENV !== 'production') {
-    const startServer = async () => {
-        await connectDB()
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on http://localhost:${PORT}`)
-            console.log(`📁 Uploads: http://localhost:${PORT}/uploads`)
-            console.log(`📋 API Health: http://localhost:${PORT}/api/health`)
-        })
+// Статические файлы (только если папка существует)
+const uploadsPath = path.join(__dirname, '../uploads')
+app.use('/uploads', express.static(uploadsPath))
+
+// Инициализация БД
+connectDB()
+
+// Health check с расширенной инфой об ошибке
+app.get('/api/health', async (req, res) => {
+    try {
+        await sequelize.authenticate()
+        res.json({ status: 'ok', database: 'connected' })
+    } catch (e) {
+        res.status(500).json({ status: 'error', database: e.message })
     }
-    startServer()
-} else {
-    // For Vercel, we need to ensure DB is connected on requests
-    connectDB()
+})
+
+// Старт сервера для локальной разработки
+if (process.env.NODE_ENV !== 'production' && process.env.VERCEL !== '1') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`)
+    })
 }
 
 export default app
