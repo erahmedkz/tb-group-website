@@ -1,19 +1,16 @@
 import { Sequelize } from 'sequelize'
 import dotenv from 'dotenv'
 import dns from 'dns'
-import pg from 'pg'
-const pgModule = pg;
+import * as pg from 'pg'
 
-// Принудительно используем IPv4 для разрешения имен хостов
 dns.setDefaultResultOrder('ipv4first')
-
 dotenv.config()
 
 const sequelize = process.env.DATABASE_URL 
     ? new Sequelize(process.env.DATABASE_URL, {
         dialect: 'postgres',
-        dialectModule: pgModule, // Явно передаем драйвер
-        logging: console.log,
+        dialectModule: pg.default || pg,
+        logging: false,
         dialectOptions: {
             ssl: {
                 require: true,
@@ -36,14 +33,8 @@ const sequelize = process.env.DATABASE_URL
             host: process.env.DB_HOST || 'localhost',
             port: process.env.DB_PORT || 5432,
             dialect: 'postgres',
-            dialectModule: pg, // И здесь тоже
-            logging: false,
-            pool: {
-                max: 5,
-                min: 0,
-                acquire: 30000,
-                idle: 10000
-            }
+            dialectModule: pg.default || pg,
+            logging: false
         }
     )
 
