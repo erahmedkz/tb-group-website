@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize'
 import dotenv from 'dotenv'
 import dns from 'dns'
+import pg from 'pg'
 
 // Принудительно используем IPv4 для разрешения имен хостов
 dns.setDefaultResultOrder('ipv4first')
@@ -10,7 +11,8 @@ dotenv.config()
 const sequelize = process.env.DATABASE_URL 
     ? new Sequelize(process.env.DATABASE_URL, {
         dialect: 'postgres',
-        logging: console.log, // Включаем логи SQL для отладки в Vercel
+        dialectModule: pg, // Явно передаем драйвер
+        logging: console.log,
         dialectOptions: {
             ssl: {
                 require: true,
@@ -19,7 +21,7 @@ const sequelize = process.env.DATABASE_URL
             prepare: false
         },
         pool: {
-            max: 1, // В Serverless лучше использовать маленькое число
+            max: 1,
             min: 0,
             acquire: 30000,
             idle: 10000
@@ -33,6 +35,7 @@ const sequelize = process.env.DATABASE_URL
             host: process.env.DB_HOST || 'localhost',
             port: process.env.DB_PORT || 5432,
             dialect: 'postgres',
+            dialectModule: pg, // И здесь тоже
             logging: false,
             pool: {
                 max: 5,
